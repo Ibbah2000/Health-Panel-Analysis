@@ -1,0 +1,44 @@
+---
+title: "Projet Micro-économetrie"
+subtitle: "Analyse des determinants socio-économiques de l'esperance de vie (Panel 2000-2025)"
+author: "Ibrahima Caba Bah"
+date: "2025-12-23"
+output:
+  pdf_document :
+    toc : true
+    toc_depth : 2
+    number_sections : true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE , include = FALSE)
+```
+
+
+# Problématique
+
+```{r}
+library(tidyverse)
+```
+
+# Presentation des données
+La base de données a été obtenu via la plateforme **kaggle**(*Life Expectancy (WHO)*).Ce jeu de données rassemble des indicateurs produits par le Global Health Observatory(GHO) de l'organisation Mondiale de la santé (OMS) et par les Nations Unies .
+
+Ce panel couvre une période de 16 ans , de 2000 à 2015.Léchantillon comporte 2938 observation reparties sur 193 pays.
+
+## Variables retenues pour l'analyse
+Afin d'etudier l'impact de l'economie et de la santé sur 
+```{r, include=FALSE}
+base<-read.csv("Life Expectancy Data.csv",sep = ",") 
+str(base)
+
+```
+
+## Details sur la base de données 
+
+
+# Statistiques descriptives
+
+
+
+
