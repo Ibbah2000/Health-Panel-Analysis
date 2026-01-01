@@ -20,7 +20,7 @@ Les données proviennent du *Global Health Observatory* (OMS) et des Nations Uni
 Voici les variables retenues et renommées pour l'analyse :
 
 | Variable (Code R) | Définition | 
-| :--- | :--- | :--- |
+| :--- | :--- | 
 | **esp_vie** | Espérance de vie à la naissance |
 | **Pib** | PIB par habitant  |
 | **Educ** | Taux de scolarisation ) |
