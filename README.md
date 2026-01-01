@@ -19,13 +19,13 @@ Les données proviennent du *Global Health Observatory* (OMS) et des Nations Uni
 
 Voici les variables retenues et renommées pour l'analyse :
 
-| Variable (Code R) | Définition | Unité / Détails |
+| Variable (Code R) | Définition | 
 | :--- | :--- | :--- |
-| **esp_vie** | Espérance de vie à la naissance | Années |
-| **Pib** | PIB par habitant | Dollars US (Constant 2015) |
-| **Educ** | Taux de scolarisation | Pourcentage (%) |
-| **Hiv** | Prévalence du VIH/SIDA (15-49 ans) | Pourcentage (%) |
-| **Polio** | Couverture vaccinale Polio (1 an) | Pourcentage (%) |
+| **esp_vie** | Espérance de vie à la naissance |
+| **Pib** | PIB par habitant  |
+| **Educ** | Taux de scolarisation ) |
+| **Hiv** | Prévalence du VIH/SIDA (15-49 ans)
+| **Polio** | Couverture vaccinale Polio (1 an)  
 | **Statut** | Niveau de développement | 0 = En développement, 1 = Développé |
 
 > **Note technique :** La variable `Statut` (invariante dans le temps) est utilisée pour les statistiques descriptives mais est retirée du modèle à Effets Fixes (Within) pour éviter la collinéarité parfaite.
