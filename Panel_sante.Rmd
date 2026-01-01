@@ -10,35 +10,185 @@ output:
     number_sections : true
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE , include = FALSE)
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE , message = FALSE, warning = FALSE )
 ```
 
 
-# Problématique
+# Présentation de la problématique Recherche 
+Dans ce projet, nous cherchons à repondre à la question de recherche suivante : **Quels sont les déterminants socio-économiques et sanitaires de l'esperance de vie , et comment la richesse nationale, l'éducation et le statut de developpement influencent-ils la longevité des populations** ?
 
-```{r}
+L'objectif principal est de comprendre les facteurs majeurs qui allongent ou réduisent la durée de vie et d'évaluer   .Cette analyse
+
+Pour répondre à cette question, nous utilisons
+
+```{r, include=FALSE}
 library(tidyverse)
+library(corrplot)
+library(plm)
 ```
 
 # Presentation des données
-La base de données a été obtenu via la plateforme **kaggle**(*Life Expectancy (WHO)*).Ce jeu de données rassemble des indicateurs produits par le Global Health Observatory(GHO) de l'organisation Mondiale de la santé (OMS) et par les Nations Unies .
+La base de données a été obtenu via la plateforme **kaggle**(**Life Expectancy (WHO)**).Ce jeu de données rassemble des indicateurs produits par le Global Health Observatory(GHO) de l'organisation Mondiale de la santé (OMS) et par les Nations Unies .
 
 Ce panel couvre une période de 16 ans , de 2000 à 2015.Léchantillon comporte 2938 observation reparties sur 193 pays.
 
 ## Variables retenues pour l'analyse
-Afin d'etudier l'impact de l'economie et de la santé sur 
+Afin d'étudier l'impact des facteurs économiques et sanitaires sur l'espérance de vie, nous avons retenu les variables suivantes , nous avons retenues les variables suivantes :
+
+- Pays :
+- Année : 
+- esp_vie : Esperance de vie à la naissance
+- Pib :
+- Educ :
+- Hiv : 
+- Inc : 
+- Polio :
+- Statut : Statut de developpement économique ( 0 = Pays en developpement et 1 = Pays developpé )
+
+
+
+
+
 ```{r, include=FALSE}
-base<-read.csv("Life Expectancy Data.csv",sep = ",") 
-str(base)
+base<-read.csv("Life Expectancy Data.csv",sep = ",") %>% 
+  select(
+    Pays = Country,
+    Année = Year,
+    esp_vie = Life.expectancy,
+    Pib = GDP,
+    Educ = Schooling,
+    Hiv = HIV.AIDS,
+    Imc = BMI,
+    Polio = Polio,
+    Statut = Status
+) %>% 
+  drop_na()
+
+
+
 
 ```
 
-## Details sur la base de données 
+
+
 
 
 # Statistiques descriptives
 
+```{r, echo=FALSE}
+summary(base)
+```
+## Corrélation
+```{r, echo=FALSE}
+library(corrplot)
 
 
+matrice <- base %>%
+  select(-Pays, -Statut) %>%
+  cor()
+
+# Affichage du graphique
+corrplot(matrice, method = "circle", type = "upper", tl.col = "black")
+```
+
+
+
+
+
+## Visualisation 
+### Relation entre PIB et Esperance de Vie
+```{r, echo=FALSE}
+ggplot(base, aes(x = Pib, y = esp_vie)) +
+  geom_point(alpha = 0.3, color = "blue") +  
+  geom_smooth(method = "lm", color = "red") + 
+  labs(
+    title = "Impact de la richesse sur l'espérance de vie",
+    x = "PIB (GDP)",
+    y = "Espérance de vie (Années)"
+  ) +
+  theme_minimal()
+```
+
+
+### Nuage de points : Éducation vs Espérance de vie
+```{r, echo=FALSE}
+# Nuage de points : Éducation vs Espérance de vie
+ggplot(base, aes(x = Educ, y = esp_vie)) +
+  geom_point(alpha = 0.3, color = "darkgreen") +  
+  geom_smooth(method = "lm", color = "red") +
+  labs(
+    title = "Lien Éducation / Santé",
+    x = "Durée de scolarisation (Années)",
+    y = "Espérance de vie (Années)"
+  ) +
+  theme_minimal()
+```
+
+# Méthodes d'Estimations
+
+## Modèle Poolé
+On applique le Mco normalement sans tenir compte des données de panel et aux différentes dimensions.
+```{r}
+modele_poolé<- plm(esp_vie ~ Pib + Educ + Hiv + Polio + Statut, data = base,model ="pooling", effect = "individual", index = c("Pays","Année"))
+summary(modele_poolé)
+```
+
+## Effets Fixes
+
+### Least Square Dummy Variable Model (LSDV)
+```{r}
+LSDV<-lm(esp_vie ~ Pib + Educ + Hiv + Polio +factor(Pays) - 1, data = base)
+summary(LSDV)
+```
+
+
+
+
+
+### Within
+```{r}
+modele_within <-plm(esp_vie ~ Pib + Educ + Hiv + Polio + Statut, data = base, model = "within", index = c("Pays","Année"))
+summary(modele_within)
+```
+## Modèle à effet aléatoire
+
+```{r}
+modele_aléatoire <-plm(esp_vie ~ Pib + Educ + Hiv + Polio + Statut, data = base, model = "random", index = c("Pays","Année"))
+summary(modele_aléatoire)
+```
+
+
+# Choix du modele et justification
+
+
+## Test de Haussmann
+```{r}
+hausman_test <- phtest(modele_within,modele_aléatoire)
+hausman_test
+```
+## Test de Breush-Pagan
+```{r}
+library(lmtest)
+bptest(esp_vie ~ Pib + Educ + Hiv + Polio + Statut+factor(Pays)+factor(Année), data=base)
+```
+
+
+
+## Test de Fisher 
+```{r}
+# Comparaison entre Effets Fixes et Pooleé
+Fisher <- pFtest(modele_within, modele_poolé)
+Fisher
+
+```
+La **p-value** étant inferieure à 0.5 , 
+
+
+
+
+
+
+
+# Conclusion
 
