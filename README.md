@@ -24,11 +24,11 @@ Voici les variables retenues et renommées pour l'analyse :
 | **esp_vie** | Espérance de vie à la naissance |
 | **Pib** | PIB par habitant  |
 | **Educ** | Taux de scolarisation ) |
-| **Hiv** | Prévalence du VIH/SIDA (15-49 ans)
-| **Polio** | Couverture vaccinale Polio (1 an)  
+| **Hiv** | Prévalence du VIH/SIDA (15-49 ans) |
+| **Polio** | Couverture vaccinale Polio (1 an) |  
 | **Statut** | Niveau de développement | 0 = En développement, 1 = Développé |
 
-> **Note technique :** La variable `Statut` (invariante dans le temps) est utilisée pour les statistiques descriptives mais est retirée du modèle à Effets Fixes (Within) pour éviter la collinéarité parfaite.
+
 
 ## 🛠️ Méthodologie
 
