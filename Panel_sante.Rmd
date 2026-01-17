@@ -1,13 +1,18 @@
 ---
-title: "Projet Micro-économetrie"
-subtitle: "Analyse des determinants socio-économiques de l'esperance de vie (Panel 2000-2025)"
+title: |
+  \includegraphics[width=4cm]{logo.png}  
+  
+  Projet Micro-économetrie
+subtitle: "Analyse des determinants socio-économiques de l'esperance de vie (Panel 2000-2015)"
 author: "Ibrahima Caba Bah"
 date: "2025-12-23"
 output:
-  pdf_document :
-    toc : true
-    toc_depth : 2
-    number_sections : true
+  pdf_document:
+    toc: true
+    toc_depth: 2
+    number_sections: true
+header-includes:
+  - \usepackage{graphicx}
 ---
 
 ```{r setup, echo=FALSE}
@@ -18,32 +23,41 @@ knitr::opts_chunk$set(echo = TRUE , message = FALSE, warning = FALSE )
 # Présentation de la problématique Recherche 
 Dans ce projet, nous cherchons à repondre à la question de recherche suivante : **Quels sont les déterminants socio-économiques et sanitaires de l'esperance de vie , et comment la richesse nationale, l'éducation et le statut de developpement influencent-ils la longevité des populations** ?
 
-L'objectif principal est de comprendre les facteurs majeurs qui allongent ou réduisent la durée de vie et d'évaluer   .Cette analyse
+L'objectif principal est de comprendre les facteurs majeurs qui allongent ou réduisent la durée de vie et d'évaluer 
 
-Pour répondre à cette question, nous utilisons
+Pour répondre à cette question, nous utilisons nous utilisons une base de données de panel couvrant la période 2000-2015. Notre méthodologie repose sur la comparaison de trois approches économétriques complémentaires :
+
+- Le modèle Poolé (MCO), pour observer les tendances globales entre les pays.
+
+- Le modèle à Effets Fixes (Within), Il se concentre sur l'évolution interne de chaque pays en supprimant les facteurs qui ne changent pas, comme la culture ou la géographie.
+
+- Le modèle à Effets Aléatoires, pour intégrer les variables invariantes comme le statut de développement.
+
+L'arbitrage entre ces modèles, guidé par le test de Hausman, nous permettra de conclure sur les leviers les plus fiables pour améliorer la santé publique mondiale.
 
 ```{r, include=FALSE}
 library(tidyverse)
 library(corrplot)
 library(plm)
+library(stargazer)
 ```
 
 # Presentation des données
 La base de données a été obtenu via la plateforme **kaggle**(**Life Expectancy (WHO)**).Ce jeu de données rassemble des indicateurs produits par le Global Health Observatory(GHO) de l'organisation Mondiale de la santé (OMS) et par les Nations Unies .
 
-Ce panel couvre une période de 16 ans , de 2000 à 2015.Léchantillon comporte 2938 observation reparties sur 193 pays.
+L'échantillon comporte 2938 observation reparties sur 193 pays.
 
 ## Variables retenues pour l'analyse
-Afin d'étudier l'impact des facteurs économiques et sanitaires sur l'espérance de vie, nous avons retenu les variables suivantes , nous avons retenues les variables suivantes :
+Afin d'étudier l'impact des facteurs économiques et sanitaires sur l'espérance de vie, nous avons retenu les variables suivantes :
 
-- Pays :
-- Année : 
+- Pays : Pays concerné par l'observation
+- Année : Année de l'observation (couvrant la période 2000-2015)
 - esp_vie : Esperance de vie à la naissance
-- Pib :
-- Educ :
-- Hiv : 
-- Inc : 
-- Polio :
+- Pib : Le Produit Intérieur Brut (PIB) par habitant, représentant la richesse économique du pays.
+- Educ : Le nombre moyen d'années de scolarisation de la population.
+- Hiv : Taux de mortalité lié au Vih/Sida
+- Imc : L'Indice de Masse Corporelle moyen de la population
+- Polio :Le taux de couverture vaccinale contre la poliomyélite
 - Statut : Statut de developpement économique ( 0 = Pays en developpement et 1 = Pays developpé )
 
 
@@ -79,6 +93,18 @@ base<-read.csv("Life Expectancy Data.csv",sep = ",") %>%
 ```{r, echo=FALSE}
 summary(base)
 ```
+En régardant les outils de statistiques descriptives ci dessus, on remarque que : 
+
+- esp_vie : L'espérance de vie varie de 36,3 à 89 ans, ce qui montre des inégalités sanitaires extrêmes entre les pays, avec une moyenne globale de 69,5 ans.
+
+- Pib : On a une moyenne de 7 586, mais un écart énorme entre le minimum (1,6) et le maximum (119 200). Cette variable reflète la richesse nationale et la capacité à financer les hôpitaux.
+
+- Educ : Varie de 0 à 20,7 ans, avec une moyenne de 12,2 ans. C’est un indicateur clé, car le niveau d’instruction permet souvent de mieux comprendre les règles d’hygiène et de prévention.
+
+- Hiv : On observe une moyenne basse de 1,9, mais un pic effrayant à 50,6 dans le pays le plus touché. Cela montre que l'épidémie reste très localisée et dévastatrice pour certaines populations.
+
+- Polio : Le taux de vaccination varie de 3 % à 99 %, avec une bonne moyenne de 82,7 %. Cela témoigne de l’efficacité des campagnes de santé publique mondiales.
+
 ## Corrélation
 ```{r, echo=FALSE}
 library(corrplot)
@@ -88,11 +114,13 @@ matrice <- base %>%
   select(-Pays, -Statut) %>%
   cor()
 
-# Affichage du graphique
-corrplot(matrice, method = "circle", type = "upper", tl.col = "black")
+corrplot(matrice, method = "circle", type = "upper", tl.col = "black", addCoef.col = "black")
 ```
+La matrice de corrélation nous montre que :
 
+- L'espérance de vie et l'éducation (Educ) présentent la corrélation positive la plus forte du tableau (0.77). Ce lien très puissant indique que le niveau d'éducation est le facteur le plus déterminant pour augmenter la longévité, bien avant la richesse économique (Pib, 0.46).
 
+- À l'inverse, il y a un lien négatif entre l'espérance de vie et le VIH : plus le virus est présent, moins l'espérance de vie est élevée
 
 
 
@@ -104,16 +132,15 @@ ggplot(base, aes(x = Pib, y = esp_vie)) +
   geom_smooth(method = "lm", color = "red") + 
   labs(
     title = "Impact de la richesse sur l'espérance de vie",
-    x = "PIB (GDP)",
-    y = "Espérance de vie (Années)"
+    x = "PIB ",
+    y = "Espérance de vie"
   ) +
   theme_minimal()
 ```
-
+Le nuage de points montre une relation **linéaire et positive** : l'espérance de vie augmente de manière constante avec la durée de scolarisation. Cela confirme que l'accès à l'éducation est un levier stable et puissant pour améliorer la santé publique à tous les niveaux.
 
 ### Nuage de points : Éducation vs Espérance de vie
 ```{r, echo=FALSE}
-# Nuage de points : Éducation vs Espérance de vie
 ggplot(base, aes(x = Educ, y = esp_vie)) +
   geom_point(alpha = 0.3, color = "darkgreen") +  
   geom_smooth(method = "lm", color = "red") +
@@ -124,71 +151,189 @@ ggplot(base, aes(x = Educ, y = esp_vie)) +
   ) +
   theme_minimal()
 ```
+Le graphique montre une corrélation positive claire : la droite de régression ascendante indique que globalement, plus un pays est riche, plus son espérance de vie est élevée. Même si les points sont dispersés, la tendance générale confirme que le développement économique reste un facteur clé de l'amélioration de la santé.
+
+```{r, echo=FALSE}
+ggplot(base, aes(x = Hiv, y = esp_vie)) +
+  geom_point(color = "darkred", alpha = 0.5) +  
+  geom_smooth(method = "lm", color = "black") + 
+  labs(title = "Lien négatif : VIH et Santé",
+       x = "Taux de prévalence VIH (%)",
+       y = "Espérance de vie (Années)") +
+  theme_minimal()
+```
+
+Contrairement aux deux précédents, ce graphique met en évidence une corrélation négative marquée. La droite de régression descendante illustre visuellement le coefficient de -0.57 calculé précédemment : plus le taux de prévalence du VIH est élevé dans un pays, plus l'espérance de vie chute drastiquement. Ce graphique agit comme le "miroir inversé" du développement : il montre comment une crise sanitaire majeure peut annuler les gains obtenus par l'éducation ou la richess
 
 # Méthodes d'Estimations
 
 ## Modèle Poolé
-On applique le Mco normalement sans tenir compte des données de panel et aux différentes dimensions.
+On applique le Mco normalement sans tenir compte des données de panel et aux différentes dimensions.Ce modèle suppose que tous les pays sont identiques et ignore l'hétérogeneité inobservée qui peut etre corelée aux variables explicatives 
 ```{r}
 modele_poolé<- plm(esp_vie ~ Pib + Educ + Hiv + Polio + Statut, data = base,model ="pooling", effect = "individual", index = c("Pays","Année"))
 summary(modele_poolé)
 ```
+Ce modèle nous donne une prémiere estimation naïve car il mélange tous les pays et toutes les années sans distinction.
+
+1. Interprétation des coefficients 
+
+**Educ** : C'est le facteur le plus déterminant. En moyenne, chaque année de scolarisation supplémentaire est associée à une hausse de l'espérance de vie de 1,57 an. Cela montre que l'accès au savoir est le principal moteur de la santé.
+
+**Hiv** : Le coefficient est de -0,704. Cela signifie qu'une augmentation de 1 unité de cette variable (taux de mortalité ou prévalence) entraîne une diminution de l'espérance de vie d'environ 0,70 an (soit environ 8 mois et demi), toutes choses égales par ailleurs.
+
+**Pib** : La richesse a un effet positif, mais très faible mathématiquement (coefficient de 0,00003). Cela suggère que si l'argent compte, son impact brut est bien moindre que celui des facteurs sociaux.
+
+**Polio** : une meilleure couverture contre la polio augmente l'espérance de vie de 0,04 an par point de pourcentage.
+
+**StatutDeveloping** : Le coefficient est de -1,48. Cela signifie que, à niveau de richesse, d'éducation et de santé égal, le simple fait d'être un "pays en développement" réduit l'espérance de vie d'environ 1 an et demi par rapport à un pays développé.
+
+2. Significativité des variables 
+
+L'examen des p-values montre que nos quatre variables principales (Pib, Educ, Hiv et Polio) sont toutes significatives au seuil de 1 %. Cela confirme qu'elles ont un impact réel et statistiquement fiable sur la durée de vie. En revanche, le statut "en développement" n'apparaît pas comme un facteur explicatif majeur une fois que l'on prend déjà en compte l'éducation et la richesse.
+
+Le coefficient de détermination ($R^2$) est de 0,775, montrant que le modèle capture 77,5 % de la variance de l'espérance de vie.
+
+F-statistic (1344) : La valeur est très élevée avec une p-value proche de zéro. Cela valide la pertinence globale du modèle : les variables choisies expliquent la variance de l'espérance de vie bien mieux que le simple hasard.
+
+Cette première estimation montre que l'éducation et la lutte contre les épidémies (VIH) sont les piliers de la survie humaine. Si le revenu (Pib) est significatif, il ne suffit pas à garantir une vie longue s'il n'est pas accompagné de politiques éducatives et sanitaires.
+
+
 
 ## Effets Fixes
-
-### Least Square Dummy Variable Model (LSDV)
-```{r}
-LSDV<-lm(esp_vie ~ Pib + Educ + Hiv + Polio +factor(Pays) - 1, data = base)
-summary(LSDV)
-```
-
-
-
-
+Les modèles à effets fixes supposent que les caractéristiques inobservables propres à chaque pays sont corelées aux variables explicatives 
 
 ### Within
+Ce modèle, corrige les limites du modèle poolé en prenant en compte l'hétérogénéité inobservée des pays ($c_i$)
+
+
 ```{r}
 modele_within <-plm(esp_vie ~ Pib + Educ + Hiv + Polio + Statut, data = base, model = "within", index = c("Pays","Année"))
 summary(modele_within)
 ```
+Dans ce modèle,la variable Statut (pays développé ou en développement) a été automatiquement exclue de l'estimation car le modèle à effets fixes ne peut analyser que ce qui change dans le temps pour un même pays. Comme le statut d'une nation (développée ou non) est resté identique durant toute la période de l'étude (2000-2015), cette variable est considérée comme "invariante". Elle est donc absorbée par l'effet fixe propre à chaque pays.
+
+
+**Educ** : Si la durée de scolarisation augmente d'un an au sein d'un pays, l'espérance de vie gagne en moyenne 0,86 an.
+
+**Hiv** : Une hausse de 1 % de la prévalence du virus entraîne une chute de l'espérance de vie de 0,43 an.
+
+**Polio** : Une amélioration de 1 % de la couverture vaccinale se traduit par un gain de longévité de 0,008 an.
+
+**Pib**: Le coefficient de 0,000012 confirme que l'augmentation du revenu national a un effet positif, bien que marginal, sur la santé à court terme au sein d'un même pays.
+
+Le modèle explique environ 39,6 % de la variance interne. 
+
+
 ## Modèle à effet aléatoire
+
+Contrairement aux effets fixes qui supposent que l'effet individuel est corrélé avec les régresseurs, ce modèle suppose que ces effets sont purement aléatoires. Il permet donc d'intégrer et d'analyser des variables qui ne changent pas dans le temps comme le "Statut" de développement.
 
 ```{r}
 modele_aléatoire <-plm(esp_vie ~ Pib + Educ + Hiv + Polio + Statut, data = base, model = "random", index = c("Pays","Année"))
 summary(modele_aléatoire)
 ```
 
+Le modèle à effets aléatoires propose une approche intermédiaire : il considère que les différences entre les pays ne sont pas fixes, mais qu'elles résultent d'un processus aléatoire. Contrairement au modèle précédent, il permet de réintroduire des variables qui ne changent pas dans le temps.
 
-# Choix du modele et justification
+1. Interprétation des coefficients 
+
+**Éducation (Educ)** : Le coefficient est de 0,96. Cela signifie qu'une année d'étude supplémentaire est corrélée à un gain d'espérance de vie de près d'un an. Ce résultat est plus proche du modèle à effets fixes que du modèle poolé.
+
+**VIH (Hiv)** : L'impact reste fortement négatif avec un coefficient de -0,45. On retrouve ici une stabilité de l'effet du virus sur la santé mondiale.
+
+**Richesse (Pib)** : Le coefficient est de 0,00002. Bien que positif et significatif, l'impact financier demeure très faible par rapport aux variables sociales.
+
+**Statut (StatutDeveloping)** : À l'inverse du modèle à effets fixes, cette variable est ici conservée. Elle affiche un coefficient de -6,32, indiquant que, toutes choses égales par ailleurs, vivre dans un pays en développement réduit l'espérance de vie de plus de 6 ans par rapport aux pays développés.
+
+2. Significativité et Qualité du modèle
+
+Toutes les variables explicatives sont significatives à 1 %. Le R² global est de 0,464, ce qui signifie que le modèle explique environ 46 % de la variance totale. La statistique de Fisher est également très élevée (2046), confirmant la validité statistique de cette approche.
+
+Le modèle à effets aléatoires semble séduisant car il combine les avantages du modèle poolé (conservation de la variable Statut) et la précision du modèle à effets fixes. Il suggère que les différences entre les pays sont des perturbations aléatoires qui ne sont pas liées à nos variables explicatives.
 
 
-## Test de Haussmann
+
+# Comparaison globale des modèles
+
+```{r, echo=FALSE, results='asis', message=FALSE}
+
+library(stargazer)
+stargazer(modele_poolé, modele_within, modele_aléatoire, 
+          type = "latex",  
+          header = FALSE,   
+          title = "Comparaison des modèles",
+          float = FALSE)
+```
+Ce tableau nous permet de comparer les coefficients obtenus via les trois approches (Poolé, Effets Fixes et Effets Aléatoires) avant de procéder aux tests de sélection.
+
+
+
+
+# Test de sélections
+
+Après avoir estimé les trois modèles (Poolé, Effets Fixes et Effets Aléatoires), nous constatons des différences dans les coefficients et les résultats. Pour déterminer rigoureusement quel modèle est le plus fiable et le mieux adapté à nos données, nous devons procéder à une série de tests statistiques de spécification
+
+## Test de Hausman
+
+Ce test est utilisé pour décider s'il faut choisir les Effets Fixes ou les Effets Aléatoires.
+
+H0 = les effets individuels ci ne sont pas corrélés aux variables explicatives 
+
+H1 = les effets individuels ci sont corrélés aux variables explicatives 
+
 ```{r}
 hausman_test <- phtest(modele_within,modele_aléatoire)
 hausman_test
 ```
-## Test de Breush-Pagan
+Le test de Hausman nous donne une **p-value de $2,19 \times 10^{-13}$**, ce qui est quasiment égal à zéro et donc bien inférieur au seuil de 5 %. Ce résultat nous force à rejeter le modèle à effets aléatoires, car il est jugé "inconsistent" ou non fiable dans ce cas précis.
+
+## Test de Breusch-Pagan
+
+Ce test est utilisé pour vérifier la présence d'effets spécifiques aux pays et déterminer si le modèle Poolé est suffisant ou s'il faut passer à un modèle de panel.
 ```{r}
 library(lmtest)
 bptest(esp_vie ~ Pib + Educ + Hiv + Polio + Statut+factor(Pays)+factor(Année), data=base)
 ```
+H0 = pas d'effets de panel, tous les pays ont le même ci
 
+H1 = effets de panels à prendre en compte
+
+Le test de Breusch-Pagan affiche une **p-value de 0,0003887**, un résultat bien inférieur au seuil critique de 5 %. Cette valeur nous oblige à rejeter l’idée que tous les pays se ressemblent et à confirmer l'existence d'effets de panel significatifs.
 
 
 ## Test de Fisher 
+
+Ce test permet de comparer le modèle à Effets Fixes (Within) et le modèle Poolé 
+
 ```{r}
-# Comparaison entre Effets Fixes et Pooleé
 Fisher <- pFtest(modele_within, modele_poolé)
 Fisher
 
 ```
-La **p-value** étant inferieure à 0.5 , 
+H0 = pas d’effets de panel
 
+H1 = effets de panel a prendre en compte 
 
-
-
-
+La **p-value**  $< 2,2e-16$, ce qui est bien en dessous du seuil  5 %. Ce résultat nous pousse à rejeter l'hypothèse nulle et confirme la présence d'effets individuels significatifs propres à chaque pays , Cela prouve que chaque pays possède des particularités uniques qui ne peuvent pas être ignorées. 
 
 
 # Conclusion
+L'objectif central de cette étude était d'identifier le meilleur modèle économétrique pour expliquer les variations de l'espérance de vie à travers 193 pays. Nous avons mis en concurrence trois approches : le modèle poolé , le modèle à effets aléatoires et le modèle à effets fixes.
+
+Pour arbitrer ce choix méthodologique, nous nous sommes appuyés sur differents types de tests statistiques rigoureux :
+
+- Le Test de Fisher a d'abord disqualifié le modèle poolé. Il a démontré que l'hypothèse d'homogénéité (supposer que tous les pays fonctionnent de la même manière) était fausse. Il existe bien des "effets de panel" significatifs qu'on ne peut ignorer.
+
+- Le Test de Breusch-Pagan a confirmé ce résultat en révélant une hétéroscédasticité marquée : la variance des erreurs n'est pas constante, ce qui valide la présence de spécificités propres à chaque pays.Le verdict du test de Hausman 
+
+- L'étape décisive a été le Test de Hausman. Ce test vérifie si les caractéristiques spécifiques des pays (comme la culture ou le climat) sont indépendantes de nos variables explicatives (comme le PIB ou l'éducation).Dans notre cas, l'hypothèse nulle a été rejetée avec une p-value très significative ($2.19 \times 10^{-13}$). Cela signifie que les effets individuels sont corrélés aux variables explicatives. Autrement dit, les facteurs invisibles propres à un pays influencent directement son niveau d'éducation ou de richesse. Le modèle à effets aléatoires est donc biaisé et doit être écarté.
+
+Le Modèle à Effets Fixes s'impose donc comme le seul estimateur convergent et fiable pour cette étude.Contrairement aux autres modèles, il neutralise les biais liés aux caractéristiques inobservées de chaque nation.
+
+En capturant cette hétérogénéité structurelle, il nous permet d'affirmer avec robustesse que l'éducation et les politiques de santé (vaccination, lutte contre le VIH) sont des déterminants statistiquement significatifs de la longévité, indépendamment des spécificités fixes de chaque pays.
+
+
+
+
+
 
